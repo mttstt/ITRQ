@@ -1,0 +1,199 @@
+ <h2> {{title}} </h2>
+   <button onclick="onBtnExport()"><span class="bi bi-cloud-download fa-sm"></span></button>
+   <button onclick="addRow()"><span class="bi bi-plus-lg fa-sm"></span></button>
+
+   <div id="myGrid" class="ag-theme-alpine" style="height: 700px"></div>
+
+   <script type="text/javascript">
+
+      function deselect(){
+           gridOptions.api.deselectAll()
+      }
+
+      function addRow() {
+        var c = gridOptions.api.getColumnDefs();
+        var newItem = {};
+        for (var col of c) {
+          newItem[col.field] = null;
+        }
+        // crea un oggetto con le righe da aggiungere alla griglia
+        var transaction = {
+          add: [newItem],
+        };
+        // applica la transazione alla griglia usando il metodo updateRowData
+        var result = gridOptions.api.applyTransaction(transaction);
+        // capire come salvare sul db....cellValueChange...salva sul db se un dato è modificato
+        fetch('http://localhost:3000/admin/addRow', {
+          method: 'POST',
+          body: JSON.stringify({tb: '{{title}}', newItem: newItem }),
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        //.then(response => response.text())
+        .then(data => { console.log(response.text()) })
+        .catch(error => {        
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Qualcosa è andato storto!',
+            footer: '<a href=""> A foreign key constraint?</a>'
+          })
+        });
+      }
+
+       // Grid Options are properties passed to the grid
+       const gridOptions = {
+
+        columnDefs: [],
+
+        // default col def properties get applied to all columns
+        defaultColDef: {sortable: true, filter: true, editable: true, maxWidth: 200, suppressSizeToFit: true, cellStyle: { display: "flex", alignItems: "center", justifyContent: "center"} },
+        pagination: true, 
+         
+        rowSelection: 'multiple', // allow rows to be selected
+        animateRows: true, // have rows animate to new positions when sorted
+        
+        undoRedoCellEditing: true, // enables undo / redo
+        undoRedoCellEditingLimit: 20, // restricts the number of undo / redo steps to 5
+
+        enableCellChangeFlash: true, // enables flashing to help see cell changes
+
+        suppressExcelExport: true,
+        popupParent: document.body,
+
+        getRowId: (params) => params.data.id,
+        readOnlyEdit: true,
+        onCellEditRequest: onCellEditRequest,
+
+        //onCellClicked: params => {
+        //  console.log('cell was clicked', params)
+        //},
+        //onCellEditingStarted: (event) => {
+        //  console.log('cellEditingStarted');
+        //},
+        //onCellEditingStopped: (event) => {
+        //  console.log('cellEditingStopped');
+        //},
+      };
+
+
+      function onCellEditRequest(event) {
+        const oldData = event.data;
+        const field = event.colDef.field;
+        const newValue = event.newValue;
+        const newData = { ...oldData };
+        newData[field] = event.newValue;
+        data = {};
+        data.id = event.data.id;
+        data.tb = '{{title}}';
+        data.field = event.colDef.field;
+        data.newValue = event.newValue;
+        console.log (data);
+        //console.log('onCellEditRequest, updating ' + field + ' to ' + newValue);
+        fetch('http://localhost:3000/admin/save-data', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        .then(response => response.text())
+        .then(data => {
+          //  console.log(data)
+        })
+        .catch(error => {        
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Qualcosa è andato storto!',
+            footer: '<a href="">Formato sbagliato?</a>'
+          })
+            console.error(error);
+        });
+        const tx = { update: [newData],};
+        event.api.applyTransaction(tx);
+      }
+
+
+
+      function onBtnExport() {
+        gridOptions.api.exportDataAsCsv({ suppressQuotes: true});
+      }
+
+
+
+      // get div to host the grid
+      const eGridDiv = document.getElementById("myGrid");
+      // new grid instance, passing in the hosting DIV and Grid Options
+      new agGrid.Grid(eGridDiv, gridOptions);
+      
+      fetch('http://localhost:3000/admin/data/'+'{{tabella}}')
+        .then(function (response) {
+          return response.json();    
+        })
+        .then(function (data) {
+          // set the column headers from the data
+          const colDefs = gridOptions.api.getColumnDefs();
+          colDefs.length=0;
+          const keys = Object.keys(data[0])
+          keys.forEach(key => colDefs.push({field : key}));
+          colDefs.push(colDef);
+          //console.log('colDefs: ',colDefs);
+          gridOptions.api.setColumnDefs(colDefs);
+          // add the data to the grid
+          gridOptions.api.setRowData(data);
+
+          var c = gridOptions.api.getColumnDefs();
+          for (var col of c) {
+            if (col.field == ('id') || col.field.includes('_at')) {
+              gridOptions.columnApi.setColumnVisible(col.field, false);
+            } 
+          }
+        })
+
+  //---------
+var gridApi = gridOptions.api;
+
+
+var colDef = {
+    field: 'azioni',
+    headerName: "Azioni",
+    cellRenderer: function(params) {
+      var div = document.createElement('div');
+      var buttonDelete = document.createElement('button');
+      var buttonEdit = document.createElement('button');
+      buttonDelete.className = 'btn btn-danger btn-sm';
+      buttonDelete.innerHTML ='<span class="bi bi-trash fa-sm"></span>';
+
+      buttonDelete.addEventListener ('click', function() {
+        const selectedRows = gridOptions.api.getSelectedRows();
+        gridOptions.api.applyTransaction({ remove: selectedRows });
+        selectedRows.push({tb: '{{title}}'});
+        //console.log(JSON.stringify(selectedRows));
+        fetch('http://localhost:3000/admin/deleteRows', {
+          method: 'POST',
+          body: JSON.stringify(selectedRows),
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            throw new Error(response.statusText);
+          }
+        })  
+        .then(data => { //console.log(data) 
+        })
+        .catch(error => {        
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Qualcosa è andato storto!',
+            footer: '<a href=""> A foreign key constraint?</a>'
+          })
+        });
+      });
+
+    div.appendChild(buttonDelete);
+    return div;
+  }
+};
+
+</script>

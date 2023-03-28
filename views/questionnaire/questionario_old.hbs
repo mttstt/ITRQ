@@ -1,0 +1,104 @@
+ <h2> {{title}} </h2>
+
+   <button onclick="onBtnExport()">Download CSV export file</button>
+
+   <div id="myGrid" class="ag-theme-alpine" style="height: 500px"></div>
+
+
+   <script type="text/javascript">
+
+        // Grid Options are properties passed to the grid
+       const gridOptions = {
+
+        columnDefs: [
+           { field: "question_text" },
+           { field: "apps[0]" },
+           { field: "question_type" },
+           ],
+
+        // default col def properties get applied to all columns
+        defaultColDef: {sortable: true, filter: true, editable: true},
+        pagination: true,     
+        rowSelection: 'multiple', // allow rows to be selected
+        animateRows: true, // have rows animate to new positions when sorted
+        
+        undoRedoCellEditing: true, // enables undo / redo
+        undoRedoCellEditingLimit: 20, // restricts the number of undo / redo steps to 5
+
+        enableCellChangeFlash: true, // enables flashing to help see cell changes
+
+        suppressExcelExport: true,
+        popupParent: document.body,
+
+        getRowId: (params) => params.data.id,
+        readOnlyEdit: true,
+        onCellEditRequest: onCellEditRequest,
+
+        //onCellClicked: params => {
+        //  console.log('cell was clicked', params)
+        //},
+        //onCellEditingStarted: (event) => {
+        //  console.log('cellEditingStarted');
+        //},
+        //onCellEditingStopped: (event) => {
+        //  console.log('cellEditingStopped');
+        //},
+
+      };
+
+      function onCellEditRequest(event) {
+        const oldData = event.data;
+        const field = event.colDef.field;
+        const newValue = event.newValue;
+        const newData = { ...oldData };
+        newData[field] = event.newValue;
+        data = {};
+        data.id = event.data.id;
+        data.tb = '{{title}}';
+        data.field = event.colDef.field;
+        data.newValue = event.newValue;
+
+        console.log (data);
+        //console.log('onCellEditRequest, updating ' + field + ' to ' + newValue);
+
+        fetch('http://localhost:3000/questionnaires/save-data', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        })
+        .then(response => response.text())
+        .then(data => {
+          //  console.log(data)
+        })
+        .catch(error => {
+          
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Qualcosa è andato storto!',
+            footer: '<a href="">Formato sbagliato?</a>'
+          })
+            console.error(error);
+        });
+
+        const tx = { update: [newData],};
+        event.api.applyTransaction(tx);
+      }
+
+      function onBtnExport() {
+        gridOptions.api.exportDataAsCsv({ suppressQuotes: true});
+      }
+
+       // get div to host the grid
+       const eGridDiv = document.getElementById("myGrid");
+       // new grid instance, passing in the hosting DIV and Grid Options
+       new agGrid.Grid(eGridDiv, gridOptions);
+
+        fetch('http://localhost:3000/questionnaires/data/'+'{{user_id}}')
+            .then(response => response.json())
+            .then(data => {
+                 // load fetched data into grid
+                gridOptions.api.setRowData(data);
+            });
+
+   </script>

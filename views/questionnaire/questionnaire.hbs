@@ -1,0 +1,153 @@
+ <div class="cr cr-top cr-right cr-sticky cr-blue">{{#each dt}} {{#if @first}}{{this.deadline}}{{/if}}{{/each}} </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col"></div>
+    <div class="col-8">
+      <h3 class="text-center">IT Risk Assessment, campagna {{#each dt}}{{#if @first}}{{this.year}}{{/if}}{{/each}}</h3>
+    </div>
+      <div class="col"style="display: flex; justify-content: right; align-items: right;">
+        <button id="saveResponses" class="border-0" data-toggle="tooltip" title="Salva il questionario">
+          <span class="bi bi-upload" style="font-size: 2rem; color: #39d;"></span>
+        </button>
+        <button id="onBtnDownload" class="border-0" data-toggle="tooltip" title="Download questionario in Excel">
+          <span class="bi bi-download" style="font-size: 2rem; color: #39d;"></span>
+        </button>
+        <button id="onBtnLogout" class="border-0" data-toggle="tooltip" title="Logout">
+          <span class="bi bi-box-arrow-right" style="font-size: 2rem; color: #39d;"></span>
+        </button>
+      </div>
+  </div>
+
+  <h5 class="text-center" >Questionario di {{#each dt}} {{#if @first}} {{this.username}} {{/if}} {{/each}}</h5>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Domanda</th>
+          {{#each dt}} 
+            {{#if @first}} 
+              {{#each this.apps}}
+                <th>{{app_name}}</th>
+              {{/each}}
+            {{/if}} 
+          {{/each}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each dt}}
+            <tr class="bg-color-{{this.area}}">
+            <td>{{this.question_id}}</td>
+            <td>{{this.question_text}}</td>
+            {{#each this.apps as |app|}}
+              <td>
+                <div class="form-group">
+                  <select class="form-control response"
+                    data-user_id="{{../user_id}}"
+                    data-campagn-id="{{../campagn_id}}"
+                    data-application-id="{{app.app_id}}"
+                    data-question-id="{{../question_id}}"
+                    data-question-type="{{../question_type}}"
+                    data-response-id="{{app.responseId}}"
+                    data-area="{{../area}}"
+                  >
+                      <option value=""></option>
+                      {{#each (range 1 5) }}
+                          <option value="{{this}}" {{#ifCond app.response this '==='}}selected{{/ifCond}}>
+                          {{this}}
+                         </option>
+                      {{/each}}
+                  </select>
+
+                </div>
+                <div class="form-group">
+                  <textarea class="form-control note" data-application-id="{{app.app_id}}" data-question-id="{{../question_id}}">{{app.note}} </textarea>              
+                </div>
+              </td>
+            {{/each}}
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <button class="btn btn-primary float-right my-5" id="save-responses">Salva</button>
+  </div>
+
+<script>
+
+$(document).ready(function() {
+
+  $('#onBtnDownload').click(function() {
+    window.location.href = '/questionnaires/downloadExcel';
+    console.log("onBtnDownload:")
+  });
+
+  $('#onBtnLogout').click(function() {
+    console.log("onLogout:") 
+  });
+  
+
+
+
+  $('#saveResponses').click(function() {
+    var numberNotNullResponse = 0;
+    var numberResponse = 0;
+    const responses = [];
+    $('.response').each(function() {
+      const userId = $(this).data('user_id');
+      const campagnId = $(this).data('campagn-id');
+      const area = $(this).data('area');
+      const applicationId = $(this).data('application-id');
+      const response = $(this).val() || null;
+      if ($(this).val().length != 0) { numberNotNullResponse++};
+      numberResponse++;
+      const questionId = $(this).data('question-id');
+      const questionType = $(this).data('question-type');
+      const responseId = $(this).data('response-id');
+      //const note = $(`textarea[data-application-id="${applicationId}"]`).val();
+      const note =  $(`textarea[ data-application-id="${applicationId}"][data-question-id="${questionId}" ]`).val();
+      //console.log({ userId, campagnId, applicationId, questionId, questionType, area, response, note, responseId });
+      responses.push({ userId, campagnId, applicationId, questionId, questionType, area, response, note, responseId });
+    });
+    $.ajax({
+      type: 'POST',
+      url: '/questionnaires/saveResponses',
+      data: JSON.stringify({ responses }),
+      contentType: 'application/json',
+      success: function(data) {
+        if (numberNotNullResponse == 0) {
+          Swal.fire(
+            'Ottimo lavoro!',
+            'Questionario salvato.',
+            'success'
+          )
+        } else {
+          var p =numberNotNullResponse/numberResponse*100;
+          var message = p.toFixed(1)+'% completata'
+          Swal.fire(
+            'Questionario salvato, ma da completare!',
+             message,
+            'warning'
+          )
+        }
+      }
+    });
+  });
+});
+
+
+  var socket = io();
+  socket.on('connect', () => {
+     console.log('Connected to Socket.io');
+  });
+  socket.emit('myEvent', { name: '{{#each dt}}{{#if @first}}{{this.username}}{{/if}}{{/each}}', 
+                           user_id: '{{#each dt}}{{#if @first}}{{this.user_id}}{{/if}}{{/each}}'
+  });
+  socket.on('myResponse', (response) => {
+    console.log(response);
+  });
+  socket.on('disconnect', () => {
+    console.log('Disconnected from Socket.io');
+  });
+
+
+</script>

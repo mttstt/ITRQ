@@ -1,0 +1,16 @@
+<h2>Carica dati CSV in MySQL</h2>
+
+    <form action="/admin/uploadfile" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".csv">
+      <button type="submit">Carica</button>
+    </form>
+    <div id="status"></div>
+
+    <script>
+          const fileInput = document.querySelector('input[type="file"]');
+          const submitButton = document.querySelector('button[type="submit"]');
+          submitButton.disabled = true;
+          fileInput.addEventListener('change', () => {
+            submitButton.disabled = fileInput.files.length === 0;
+          });
+    </script>

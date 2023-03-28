@@ -1,0 +1,31 @@
++ Implementare sequalize:
+
++ Sostituire la libreria ag-grid con react-data-grid:
+
++ Terminare la funzionalità per l'aggiunta di una nuova riga in tabelle:
+
++ Dashboard:
+    - visualizzare lo stato della campagne attiva/disattiva
+    - visualizzare per utente responsabile se sono state completate i questionari (data last update nella data della campagna). 
+    - visualizzare la % delle risposte completate degli utenti responsabili
+
++ Implementare il SSO Microsoft:
+    - il logout dovrebbe essere ritornare alla pagina iniziale. Questo sembra impossibile se l'applicazione non è https.
+    - Con il logout il cookies andrebbe eliminato.?
+
++ Da administrator l'accesso ad Utenti Responsabili :
+    - consentire il blocco in sola lettura
+    - consentire il download in excel
+
++ Questionari:
+    - consentire il logout
+    - mostrare la lista degli utenti abilitati al questionario
+    - Visualizzare la preview del calcolo del valore nel questionario anche rispetto a quello precedente
+
++ Predisporre delle api:
+    - per il download dei risultati già calcolati 
+    - il dettaglio delle risposte
+
++ Come attivare il debug: ?
+
+

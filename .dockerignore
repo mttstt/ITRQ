@@ -1,0 +1,10 @@
+node_modules
+tools
+data.sql
+itrq.sql
+*/node_modules
+.vscode
+docker-compose.yaml
+Dockerfile
+.dockerignore
+.git

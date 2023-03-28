@@ -1,0 +1,8 @@
+<div class="container mt-5">
+    <h1 class="text-center">Lista Questionari</h1>
+    {{#each users}}
+      <div class="user">
+        <a href="/questionnaires/questionnaire/{{id}}" class="list-group-item list-group-item-action">{{username}}</a>
+      </div>
+    {{/each}}
+</div>

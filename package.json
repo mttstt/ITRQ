@@ -1,0 +1,46 @@
+{
+  "name": "itrq",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "startd": "nodemon node ./bin/www",
+    "build": "webpack --mode production",
+    "startw": "webpack serve --open"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^1.16.0",
+    "ag-grid-community": "^29.1.0",
+    "axios": "^1.3.4",
+    "bootstrap": "^5.3.0-alpha1",
+    "bootstrap-icons": "^1.10.3",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "debug": "~2.6.9",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "hbs": "^4.2.0",
+    "helmet": "^6.0.1",
+    "http-errors": "~1.6.3",
+    "jquery": "^3.6.4",
+    "morgan": "~1.9.1",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.1.2",
+    "nodemon": "^2.0.21",
+    "popper.js": "^1.16.1",
+    "sequelize": "^6.29.0",
+    "socket.io": "^4.6.0",
+    "socket.io-client": "^4.6.0",
+    "sweetalert2": "^11.4.8",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "css-loader": "^6.7.3",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
+  }
+}

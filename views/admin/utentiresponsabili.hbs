@@ -1,0 +1,70 @@
+<h2> {{title}} </h2>
+   
+  <button onclick="onBtnExport()"><span class="bi bi-cloud-download fa-sm"></span></button> 
+  <div id="myGrid" class="ag-theme-alpine" style="height: 500px"></div>
+
+  <script type="text/javascript">
+
+  const cellClassRules = {
+    "connected": params => params.value == "connected",
+  };
+
+
+var columnsrenderer = function (value) {
+	return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>';
+}
+
+var cellsrenderer = function (row, column, value) {
+	return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>';
+}
+    // Grid Options are properties passed to the grid
+    const gridOptions = {
+
+      columnDefs: [
+        { field: 'username', 
+          cellRenderer: function(params) {
+            let user_id = params.data.id;
+            let username = params.data.username;
+            let question_type = params.data.question_type_id;
+            let newLink = `<a href=/questionnaires/questionnaire?user_id=${user_id}&questions_type_id=${question_type}>${username}</a>`;
+            return newLink;} },
+        { field: 'email' },
+        { field: 'type_description'},
+        { field: 'status', cellClassRules: cellClassRules},
+        { field: 'connected_at'},
+        { field: 'disconnected_at'}
+      ],
+
+      // default col def properties get applied to all columns
+      defaultColDef: {sortable: true, filter: true, maxWidth: 200, suppressSizeToFit: true, cellStyle: { alignItems: "center", justifyContent: "center"} },
+      pagination: true, 
+         
+      rowSelection: 'multiple', // allow rows to be selected
+      animateRows: true, // have rows animate to new positions when sorted
+        
+      popupParent: document.body,
+
+      getRowId: (params) => params.data.id,
+      readOnlyEdit: true
+    };
+
+    function onBtnExport() {
+      gridOptions.api.exportDataAsCsv({ suppressQuotes: true});
+    }
+    
+    const eGridDiv = document.getElementById("myGrid");
+    // new grid instance, passing in the hosting DIV and Grid Options
+    new agGrid.Grid(eGridDiv, gridOptions);
+      
+    fetch('http://localhost:3000/admin/dataUtentiResponsabili')
+      .then(function (response) {
+        return response.json();    
+      })
+      .then(function (data) {
+        // set the column headers from the data
+        const colDefs = gridOptions.api.getColumnDefs();
+        colDefs.length=0;
+        gridOptions.api.setRowData(data);
+      })
+
+</script>

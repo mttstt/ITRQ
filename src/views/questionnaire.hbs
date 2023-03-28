@@ -1,0 +1,52 @@
+  <div class="container">
+    <h1 class="text-center my-5">IT Risk Assessment, campagna {{#each dt}} {{#if @first}} {{this.campagn}} {{/if}} {{/each}}</h1>
+    <h5 class="text-center my-5" >Questionario di {{#each dt}} {{#if @first}} {{this.username}} {{/if}} {{/each}}</h5>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Domanda</th>
+          {{#each dt}} 
+            {{#if @first}} 
+              {{#each this.apps}}
+                <th>{{app_name}}</th>
+              {{/each}}
+            {{/if}} 
+          {{/each}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each dt}}
+          <tr> 
+            <td>{{this.question_id}}</td>
+            <td>{{this.question_text}}</td>
+            {{#each this.apps as |app|}}
+              <td>
+                <div class="form-group">
+                  <select class="form-control response"
+                    data-user_id="{{../user_id}}"
+                    data-campagn="{{../campagn}}"
+                    data-application-id="{{app.app_id}}"
+                    data-question-id="{{../question_id}}"
+                    data-question-type="{{../question_type}}"
+                  >
+                      <option value=""></option>
+                      {{#each (range 1 5) }}
+                          <option value="{{this}}" {{#ifCond app.response this '==='}}selected{{/ifCond}}>
+                          {{this}}
+                         </option>
+                      {{/each}}
+                  </select>
+
+                </div>
+                <div class="form-group">
+                  <textarea class="form-control note" data-application-id="{{app.app_id}}" data-question-id="{{../question_id}}">{{app.note}}</textarea>              
+                </div>
+              </td>
+            {{/each}}
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <button class="btn btn-primary float-right my-5" id="save-responses">Salva</button>
+  </div>
